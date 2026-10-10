@@ -1,0 +1,15 @@
+[Unit]
+Description=cachewatch - cache-hit observability proxy for 9router
+After=network.target 9router.service
+
+[Service]
+Type=simple
+User=agentuser
+Environment=CW_UPSTREAM=http://localhost:20128
+Environment=CW_PORT=20130
+ExecStart=/usr/bin/python3 /home/agentuser/.cachewatch/cachewatch.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=ngrok tunnel to cachewatch dashboard (port 20130)
+After=network-online.target cachewatch.service
+Wants=cachewatch.service
+
+[Service]
+Type=simple
+User=agentuser
+ExecStart=/usr/local/bin/ngrok http 20130 --log stdout --log-format json
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

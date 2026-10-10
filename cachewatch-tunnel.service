@@ -1,0 +1,13 @@
+[Unit]
+Description=cachewatch public dashboard tunnel (cloudflared quick tunnel)
+After=network-online.target cachewatch.service
+
+[Service]
+Type=simple
+User=agentuser
+ExecStart=/usr/local/bin/cloudflared tunnel --url http://localhost:20130 --log json
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

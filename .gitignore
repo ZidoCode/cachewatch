@@ -1,0 +1,8 @@
+*.db
+*.db-wal
+*.db-shm
+*.log
+*.bak
+__pycache__/
+.url_state
+.env

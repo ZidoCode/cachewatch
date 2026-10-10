@@ -1,0 +1,14 @@
+[Unit]
+Description=router - one-domain reverse router (ttyd + cachewatch)
+After=network.target
+
+[Service]
+Type=simple
+User=agentuser
+Environment=RT_PORT=7680
+ExecStart=/usr/bin/python3 /home/agentuser/.cachewatch/router.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
