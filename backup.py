@@ -5,15 +5,14 @@ import os, sys, json, time, tarfile, io, urllib.request, urllib.parse, hashlib
 
 HOME = os.path.expanduser("~")
 TOKEN = None
-ENV_FILE = os.environ.get("CACHEWATCH_ENV", f"{HOME}/.hermes/.env")
-for line in open(ENV_FILE):
+for line in open(f"{HOME}/.hermes/.env"):
     line = line.strip()
     if line.startswith("TELEGRAM_BOT_TOKEN="):
         TOKEN = line.split("=", 1)[1].strip().strip('"').strip("'")
 if not TOKEN:
     sys.exit("no token")
 
-CHAT = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("TELEGRAM_CHAT_ID", "")
+CHAT = sys.argv[1] if len(sys.argv) > 1 else "6905566220"
 
 def send_file(path, caption):
     url = f"https://api.telegram.org/bot{TOKEN}/sendDocument"
@@ -50,8 +49,18 @@ with tarfile.open(OUT, "w:gz") as t:
                   "/etc/systemd/system/v6bridge.service", "/etc/nginx/sites-available/default"]:
         if os.path.exists(extra):
             t.add(extra, arcname="etc" + extra)
-size = os.path.getsize(OUT)
-ok = send_file(OUT, f"📦 Backup 9router+cachewatch {STAMP} ({size//1024} KB)")
-print("sent" if ok else "FAILED", OUT, size)
+# security fix 2026-10-10: encrypt archive before sending to Telegram
+ENC = OUT + ".enc"
+PW = open(f"{HOME}/.cachewatch/.backup-pw").read().strip().encode()
+import subprocess as sp
+r = sp.run(["openssl", "enc", "-aes-256-cbc", "-pbkdf2", "-iter", "200000",
+            "-salt", "-in", OUT, "-out", ENC, "-pass", "stdin"],
+           input=PW, capture_output=True)
+if r.returncode != 0:
+    sys.exit("encrypt failed: " + r.stderr.decode())
+size = os.path.getsize(ENC)
+os.remove(OUT)
+ok = send_file(ENC, f"🔐 Backup 9router+cachewatch {STAMP} (AES-256 encrypted, {size//1024} KB) — decrypt: openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in <file> -out backup.tar.gz -pass pass:<pw dari ~/.cachewatch/.backup-pw VPS>")
+print("sent" if ok else "FAILED", ENC, size)
 if ok and size < 45 * 1024 * 1024:
-    os.remove(OUT)
+    os.remove(ENC)
