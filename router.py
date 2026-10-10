@@ -21,7 +21,7 @@ class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.0"  # force close per request — cloudflared-safe
 
     def log_message(self, fmt, *args):
-        print(f"ACCESS {self.client_address[0]} {self.command} {self.path}", flush=True)
+        print(f"ACCESS {self.client_address[0]} {self.command} {self.path.split('?')[0]}", flush=True)
 
     def _route(self):
         path = self.path
@@ -63,7 +63,7 @@ class Handler(BaseHTTPRequestHandler):
             pass
 
     def _forward(self):
-        print(f"ACCESS {self.client_address[0]} {self.command} {self.path}", flush=True)
+        print(f"ACCESS {self.client_address[0]} {self.command} {self.path.split('?')[0]}", flush=True)
         target, upstream_path = self._route()
         first_line = f"{self.command} {upstream_path} {self.request_version}"
         headers = []
