@@ -10,7 +10,7 @@ import os
 import sqlite3
 from datetime import datetime, timedelta, timezone
 
-R9_DB = "/home/agentuser/.9router/db/data.sqlite"
+R9_DB = os.environ.get("R9_DB", os.path.expanduser("~/.9router/db/data.sqlite"))
 CW_DB = os.path.expanduser("~/.cachewatch/cachewatch.db")
 CST = timezone(timedelta(hours=8))
 
@@ -52,10 +52,10 @@ def hourly():
     rows = _q(
         R9_DB,
         "SELECT substr(timestamp,1,13) h, COUNT(*) n FROM usageHistory "
-        "GROUP BY h ORDER BY h",
+        "WHERE substr(timestamp,1,13) >= ? GROUP BY h ORDER BY h",
+        (since,),
     )
-    out = [(r["h"], r["n"]) for r in rows if r["h"] >= since]
-    return out
+    return [(r["h"], r["n"]) for r in rows]
 
 
 def providers():
